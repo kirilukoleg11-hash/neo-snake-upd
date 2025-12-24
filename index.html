@@ -18,61 +18,72 @@
             background: #4834d4; border: none; color: white; padding: 10px 15px; border-radius: 8px; cursor: pointer;
         }
         .sidebar {
-            position: absolute; left: -280px; top: 0; width: 240px; height: 100%;
-            background: rgba(10, 10, 20, 0.98); padding: 70px 20px;
+            position: absolute; left: -300px; top: 0; width: 250px; height: 100%;
+            background: rgba(10, 10, 25, 0.98); padding: 60px 20px;
             border-right: 2px solid #4834d4; transition: 0.3s; z-index: 90; overflow-y: auto;
         }
         .sidebar.open { left: 0; }
-        .mode-btn { width: 100%; padding: 10px; margin-bottom: 5px; background: rgba(72, 52, 212, 0.2); border: 1px solid #4834d4; color: white; border-radius: 6px; cursor: pointer; }
-        .mode-btn.active { background: #00d2ff; color: #05050a; font-weight: bold; }
+        .section-title { color: #00d2ff; font-size: 13px; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+        .mode-btn { width: 100%; padding: 10px; margin-bottom: 5px; background: rgba(72, 52, 212, 0.2); border: 1px solid #4834d4; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; transition: 0.2s; }
+        .mode-btn.active { background: #00d2ff; color: #05050a; font-weight: bold; border-color: #fff; box-shadow: 0 0 10px #00d2ff; }
         
-        canvas { border: 2px solid #4834d4; border-radius: 8px; background-color: #000; max-width: 95vw; max-height: 40vh; }
-        .stats { font-size: 22px; font-weight: bold; color: #00d2ff; margin-bottom: 5px; }
+        canvas { border: 2px solid #4834d4; border-radius: 8px; background-color: #000; max-width: 95vw; max-height: 40vh; box-shadow: 0 0 20px rgba(72, 52, 212, 0.4); }
+        .stats { font-size: 24px; font-weight: bold; color: #00d2ff; margin-bottom: 5px; text-shadow: 0 0 10px #00d2ff; }
 
-        /* Оверлеи (Пауза, Смерть, Отсчет) */
         #gameOverlay {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
+            background: rgba(0,0,0,0.9); display: flex; justify-content: center;
             align-items: center; z-index: 50; flex-direction: column; text-align: center;
         }
-        #countdownText { font-size: 80px; color: #00d2ff; font-weight: bold; display: none; }
+        #countdownText { font-size: 100px; color: #00d2ff; font-weight: bold; display: none; text-shadow: 0 0 30px #00d2ff; }
         #deathText { display: none; }
-        #deathText h1 { color: #ff4757; margin-bottom: 10px; }
+        #deathText h1 { color: #ff4757; font-size: 40px; margin-bottom: 10px; text-shadow: 0 0 20px #ff4757; }
         
-        .controls { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 15px; }
-        .btn { width: 70px; height: 70px; background: rgba(72, 52, 212, 0.3); border: 2px solid #4834d4; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; }
+        .controls { display: grid; grid-template-columns: repeat(3, 75px); gap: 10px; margin-top: 15px; }
+        .btn { width: 75px; height: 75px; background: rgba(72, 52, 212, 0.3); border: 2px solid #4834d4; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 28px; color: white; user-select: none; }
+        .btn:active { background: #00d2ff; transform: scale(0.9); }
     </style>
 </head>
 <body>
 
-    <button class="menu-toggle" onclick="toggleSidebar()">☰ МЕНЮ</button>
+    <button class="menu-toggle" onclick="toggleSidebar()">☰ НАСТРОЙКИ</button>
 
     <div class="sidebar" id="sidebar">
-        <h3 style="color:#00d2ff">СКИНЫ</h3>
-        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
-            <button class="mode-btn active" id="skin_neon" onclick="setSkin('neon')">Неон</button>
+        <div class="section-title">Скины</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 5px;">
+            <button class="mode-btn" id="skin_neon" onclick="setSkin('neon')">Неон</button>
             <button class="mode-btn" id="skin_gold" onclick="setSkin('gold')">Золото</button>
+            <button class="mode-btn" id="skin_emerald" onclick="setSkin('emerald')">Изумруд</button>
+            <button class="mode-btn" id="skin_pink" onclick="setSkin('pink')">Фантом</button>
         </div>
-        <h3 style="color:#00d2ff">СКОРОСТЬ</h3>
-        <button class="mode-btn active" id="spd_norm" onclick="setSpeed(0.12, 'spd_norm')">Обычный</button>
+
+        <div class="section-title">Скорость</div>
+        <button class="mode-btn" id="spd_slow" onclick="setSpeed(0.08, 'spd_slow')">Медленно</button>
+        <button class="mode-btn" id="spd_norm" onclick="setSpeed(0.12, 'spd_norm')">Обычный</button>
         <button class="mode-btn" id="spd_fast" onclick="setSpeed(0.18, 'spd_fast')">Быстро 🔥</button>
-        
-        <div id="leaderboard" style="margin-top:20px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
+
+        <div class="section-title">Размер карты</div>
+        <button class="mode-btn" id="size_15" onclick="setMapSize(15, 'size_15')">15x15</button>
+        <button class="mode-btn" id="size_20" onclick="setMapSize(20, 'size_20')">20x20</button>
+
+        <div style="margin-top:20px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
             <h4 style="text-align:center; color:#3ae374; margin:0 0 10px 0;">ТОП МИРА</h4>
-            <div id="leaderboard-content"></div>
+            <div id="leaderboard-content" style="font-size: 12px;"></div>
         </div>
+
+        <button class="mode-btn" style="margin-top:25px; opacity:0.6; border-color: #ff4757;" onclick="resetAccount()">СМЕНИТЬ НИК</button>
     </div>
 
     <div id="gameOverlay">
         <div id="startScreen">
-            <h1 style="color:#00d2ff">NEO SNAKE</h1>
-            <button class="mode-btn" style="width:200px; font-size:20px" onclick="startCountdown()">ИГРАТЬ</button>
+            <h1 style="color:#00d2ff; font-size: 45px; margin-bottom: 20px;">SNAKE<br>ONLINE</h1>
+            <button class="mode-btn" style="width:220px; font-size:22px; padding:15px" onclick="startCountdown()">ИГРАТЬ</button>
         </div>
         <div id="countdownText">3</div>
         <div id="deathText">
             <h1>ТЫ ПОГИБ!</h1>
-            <p id="finalScore" style="font-size:20px"></p>
-            <button class="mode-btn" style="width:200px; font-size:20px" onclick="startCountdown()">РЕСТАРТ</button>
+            <p id="finalScore" style="font-size:24px; color:#aaa;"></p>
+            <button class="mode-btn" style="width:220px; font-size:22px; padding:15px" onclick="startCountdown()">РЕСТАРТ</button>
         </div>
     </div>
 
@@ -80,14 +91,14 @@
     <canvas id="gameCanvas"></canvas>
 
     <div class="controls">
-        <div class="btn" style="grid-column:2" ontouchstart="handleInput('w')">▲</div>
-        <div class="btn" style="grid-column:1; grid-row:2" ontouchstart="handleInput('a')">◀</div>
-        <div class="btn" style="grid-column:2; grid-row:2" ontouchstart="handleInput('s')">▼</div>
-        <div class="btn" style="grid-column:3; grid-row:2" ontouchstart="handleInput('d')">▶</div>
+        <div class="btn" style="grid-column:2" onmousedown="handleInput('w')" ontouchstart="handleInput('w')">▲</div>
+        <div class="btn" style="grid-column:1; grid-row:2" onmousedown="handleInput('a')" ontouchstart="handleInput('a')">◀</div>
+        <div class="btn" style="grid-column:2; grid-row:2" onmousedown="handleInput('s')" ontouchstart="handleInput('s')">▼</div>
+        <div class="btn" style="grid-column:3; grid-row:2" onmousedown="handleInput('d')" ontouchstart="handleInput('d')">▶</div>
     </div>
 
     <script>
-        // === ВСТАВЬ СВОЙ FIREBASE CONFIG ===
+        // === ВСТАВЬ СВОЙ FIREBASE CONFIG ТУТ ===
         const firebaseConfig = {
 
   apiKey: "AIzaSyAjy0k14PEvg1pxtAvhCVCDoUINXvyNaC0",
@@ -107,13 +118,22 @@
   measurementId: "G-XLX20K1NQC"
 
 };
-        // ===================================
+        // =======================================
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let playerName = localStorage.getItem("snakeUser");
 
-        let tileCount = 20, moveSpeed = 0.12, currentSkin = 'neon';
-        const skins = { neon: {head:"#00d2ff", body:"rgba(58,227,116,", food:"#ff4757"}, gold: {head:"#ffcc00", body:"rgba(255,100,0,", food:"#fff"}};
+        const skins = {
+            neon: { head: "#00d2ff", body: "rgba(58, 227, 116, ", food: "#ff4757" },
+            gold: { head: "#ffcc00", body: "rgba(255, 100, 0, ", food: "#ffffff" },
+            emerald: { head: "#2ecc71", body: "rgba(39, 174, 96, ", food: "#f1c40f" },
+            pink: { head: "#ef57ff", body: "rgba(110, 20, 255, ", food: "#00ffcc" }
+        };
+
+        let tileCount = parseInt(localStorage.getItem("snakeSize")) || 20;
+        let moveSpeed = parseFloat(localStorage.getItem("snakeSpeed")) || 0.12;
+        let currentSkin = localStorage.getItem("snakeSkin") || 'neon';
 
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
@@ -123,8 +143,8 @@
 
         function initGame() {
             let screenMin = Math.min(window.innerWidth * 0.95, window.innerHeight * 0.4);
-            let gridSize = Math.floor(screenMin / tileCount);
-            canvas.width = tileCount * gridSize; canvas.height = tileCount * gridSize;
+            let gs = Math.floor(screenMin / tileCount);
+            canvas.width = tileCount * gs; canvas.height = tileCount * gs;
             const mid = Math.floor(tileCount / 2);
             snake = [{x:mid, y:mid}, {x:mid, y:mid+1}, {x:mid, y:mid+2}];
             oldSnake = JSON.parse(JSON.stringify(snake));
@@ -142,6 +162,18 @@
             if (k === 's' && dy !== -1) { nextDx = 0; nextDy = 1; }
         }
 
+        // ПОЧИНКА ПК УПРАВЛЕНИЯ
+        window.addEventListener("keydown", e => {
+            const keyMap = {
+                'ArrowUp': 'w', 'ArrowDown': 's', 'ArrowLeft': 'a', 'ArrowRight': 'd',
+                'w': 'w', 'a': 'a', 's': 's', 'd': 'd', 'W': 'w', 'A': 'a', 'S': 's', 'D': 'd'
+            };
+            if (keyMap[e.key]) {
+                e.preventDefault();
+                handleInput(keyMap[e.key]);
+            }
+        });
+
         function toggleSidebar() {
             const side = document.getElementById("sidebar");
             side.classList.toggle('open');
@@ -151,6 +183,28 @@
             }
         }
 
+        function setSkin(s) { 
+            currentSkin = s; localStorage.setItem("snakeSkin", s); 
+            updateMenuButtons(); 
+        }
+        function setSpeed(v, id) { 
+            moveSpeed = v; localStorage.setItem("snakeSpeed", v); 
+            updateMenuButtons(); 
+        }
+        function setMapSize(v, id) { 
+            tileCount = v; localStorage.setItem("snakeSize", v); 
+            updateMenuButtons(); initGame(); 
+        }
+
+        function updateMenuButtons() {
+            document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('skin_'+currentSkin)?.classList.add('active');
+            document.getElementById(tileCount === 15 ? 'size_15' : 'size_20')?.classList.add('active');
+            if(moveSpeed === 0.08) document.getElementById('spd_slow').classList.add('active');
+            else if(moveSpeed === 0.12) document.getElementById('spd_norm').classList.add('active');
+            else document.getElementById('spd_fast').classList.add('active');
+        }
+
         function showOverlay(id) {
             document.getElementById("gameOverlay").style.display = "flex";
             ['startScreen', 'countdownText', 'deathText'].forEach(el => document.getElementById(el).style.display = "none");
@@ -158,34 +212,22 @@
         }
 
         function startCountdown() {
-            isPaused = true;
-            isCountingDown = true;
+            isPaused = true; isCountingDown = true;
             document.getElementById("sidebar").classList.remove('open');
             showOverlay('countdownText');
             let count = 3;
             const cd = document.getElementById("countdownText");
             cd.innerText = count;
-            
             const timer = setInterval(() => {
                 count--;
-                if (count > 0) {
-                    cd.innerText = count;
-                } else {
+                if (count > 0) cd.innerText = count;
+                else {
                     clearInterval(timer);
                     document.getElementById("gameOverlay").style.display = "none";
-                    isPaused = false;
-                    isCountingDown = false;
+                    isPaused = false; isCountingDown = false;
                     requestAnimationFrame(gameLoop);
                 }
-            }, 800);
-        }
-
-        function onDeath() {
-            isPaused = true;
-            saveScore(score);
-            document.getElementById("finalScore").innerText = "Твой счет: " + score;
-            showOverlay('deathText');
-            initGame();
+            }, 700);
         }
 
         function createFood() {
@@ -201,7 +243,12 @@
                 const head = { x: snake[0].x + dx, y: snake[0].y + dy };
                 if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount ||
                     snake.some((p, i) => i !== 0 && p.x === head.x && p.y === head.y)) {
-                    onDeath(); return;
+                    isPaused = true;
+                    saveScore(score);
+                    document.getElementById("finalScore").innerText = "ТВОЙ СЧЕТ: " + score;
+                    showOverlay('deathText');
+                    initGame();
+                    return;
                 }
                 snake.unshift(head);
                 if (head.x === food.x && head.y === food.y) {
@@ -215,14 +262,17 @@
             let gs = canvas.width / tileCount;
             const skin = skins[currentSkin];
             ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.fillStyle = skin.food; ctx.beginPath(); ctx.arc(food.x*gs+gs/2, food.y*gs+gs/2, gs/3, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = skin.food; ctx.shadowBlur = 10; ctx.shadowColor = skin.food;
+            ctx.beginPath(); ctx.arc(food.x*gs+gs/2, food.y*gs+gs/2, gs/3, 0, Math.PI*2); ctx.fill();
             snake.forEach((p, i) => {
                 const prev = oldSnake[i] || p;
                 const x = prev.x + (p.x - prev.x) * moveProgress;
                 const y = prev.y + (p.y - prev.y) * moveProgress;
                 ctx.fillStyle = i === 0 ? skin.head : skin.body + (1 - i/snake.length) + ")";
+                ctx.shadowBlur = i === 0 ? 15 : 0;
                 ctx.beginPath(); ctx.roundRect(x*gs+1, y*gs+1, gs-2, gs-2, 4); ctx.fill();
             });
+            ctx.shadowBlur = 0;
         }
 
         function gameLoop() { if (!isPaused) { update(); draw(); requestAnimationFrame(gameLoop); } }
@@ -236,11 +286,21 @@
         db.ref('leaderboard').orderByChild('score').limitToLast(5).on('value', snap => {
             const d = []; snap.forEach(c => d.push(c.val()));
             d.sort((a,b) => b.score - a.score);
-            document.getElementById("leaderboard-content").innerHTML = d.map((r,i) => `<div style="display:flex; justify-content:space-between; font-size:12px; border-bottom:1px solid #222; padding:3px;"><span>${i+1}. ${r.name}</span><span>${r.score}</span></div>`).join('');
+            document.getElementById("leaderboard-content").innerHTML = d.map((r,i) => 
+                `<div style="display:flex; justify-content:space-between; padding:4px; border-bottom:1px solid #222;">
+                <span>${i+1}. ${r.name}</span><span>${r.score}</span></div>`).join('');
         });
 
-        if(!playerName) { playerName = prompt("Ник:") || "Gamer"; localStorage.setItem("snakeUser", playerName); }
-        initGame(); draw();
+        function resetAccount() { if(confirm("Сбросить ник?")) { localStorage.clear(); location.reload(); } }
+
+        if(!playerName) { 
+            playerName = prompt("Введи свой ник для онлайна:") || "Gamer" + Math.floor(Math.random()*99);
+            localStorage.setItem("snakeUser", playerName); 
+        }
+        
+        updateMenuButtons();
+        initGame();
+        draw();
     </script>
 </body>
 </html>
