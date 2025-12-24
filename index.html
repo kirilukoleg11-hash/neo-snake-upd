@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Snake Online: Skins & Settings</title>
+    <title>Neo Snake Online</title>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
     <style>
@@ -19,26 +19,28 @@
         }
         .sidebar {
             position: absolute; left: -280px; top: 0; width: 240px; height: 100%;
-            background: rgba(10, 10, 20, 0.98); padding: 60px 20px;
+            background: rgba(10, 10, 20, 0.98); padding: 70px 20px;
             border-right: 2px solid #4834d4; transition: 0.3s; z-index: 90; overflow-y: auto;
         }
         .sidebar.open { left: 0; }
-        .section-title { color: #00d2ff; font-size: 14px; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 1px; }
-        .mode-btn { width: 100%; padding: 10px; margin-bottom: 5px; background: rgba(72, 52, 212, 0.2); border: 1px solid #4834d4; color: white; border-radius: 6px; cursor: pointer; font-size: 13px; }
-        .mode-btn.active { background: #00d2ff; color: #05050a; font-weight: bold; border-color: #fff; }
-        
-        .skin-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+        .mode-btn { width: 100%; padding: 10px; margin-bottom: 5px; background: rgba(72, 52, 212, 0.2); border: 1px solid #4834d4; color: white; border-radius: 6px; cursor: pointer; }
+        .mode-btn.active { background: #00d2ff; color: #05050a; font-weight: bold; }
         
         canvas { border: 2px solid #4834d4; border-radius: 8px; background-color: #000; max-width: 95vw; max-height: 40vh; }
         .stats { font-size: 22px; font-weight: bold; color: #00d2ff; margin-bottom: 5px; }
-        
-        .leaderboard { background: rgba(255, 255, 255, 0.05); padding: 10px; border-radius: 8px; margin-top: 10px; }
-        .entry { display: flex; justify-content: space-between; border-bottom: 1px solid rgba(255,255,255,0.1); padding: 4px 0; font-size: 12px; }
 
+        /* Оверлеи (Пауза, Смерть, Отсчет) */
+        #gameOverlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: flex; justify-content: center;
+            align-items: center; z-index: 50; flex-direction: column; text-align: center;
+        }
+        #countdownText { font-size: 80px; color: #00d2ff; font-weight: bold; display: none; }
+        #deathText { display: none; }
+        #deathText h1 { color: #ff4757; margin-bottom: 10px; }
+        
         .controls { display: grid; grid-template-columns: repeat(3, 70px); gap: 10px; margin-top: 15px; }
         .btn { width: 70px; height: 70px; background: rgba(72, 52, 212, 0.3); border: 2px solid #4834d4; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; color: white; }
-        
-        #pauseOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); display: flex; justify-content: center; align-items: center; z-index: 50; flex-direction: column; }
     </style>
 </head>
 <body>
@@ -46,47 +48,46 @@
     <button class="menu-toggle" onclick="toggleSidebar()">☰ МЕНЮ</button>
 
     <div class="sidebar" id="sidebar">
-        <div class="section-title">Скин змейки</div>
-        <div class="skin-grid">
+        <h3 style="color:#00d2ff">СКИНЫ</h3>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:5px;">
             <button class="mode-btn active" id="skin_neon" onclick="setSkin('neon')">Неон</button>
             <button class="mode-btn" id="skin_gold" onclick="setSkin('gold')">Золото</button>
-            <button class="mode-btn" id="skin_emerald" onclick="setSkin('emerald')">Изумруд</button>
-            <button class="mode-btn" id="skin_pink" onclick="setSkin('pink')">Фантом</button>
         </div>
-
-        <div class="section-title">Скорость</div>
-        <button class="mode-btn" id="spd_slow" onclick="setSpeed(0.08, 'spd_slow')">Медленно</button>
+        <h3 style="color:#00d2ff">СКОРОСТЬ</h3>
         <button class="mode-btn active" id="spd_norm" onclick="setSpeed(0.12, 'spd_norm')">Обычный</button>
         <button class="mode-btn" id="spd_fast" onclick="setSpeed(0.18, 'spd_fast')">Быстро 🔥</button>
-
-        <div class="section-title">Размер карты</div>
-        <button class="mode-btn" id="size_15" onclick="setMapSize(15, 'size_15')">Малая (15x15)</button>
-        <button class="mode-btn active" id="size_20" onclick="setMapSize(20, 'size_20')">Стандарт (20x20)</button>
-
-        <div class="leaderboard">
-            <h4 style="margin:0; text-align:center; color:#3ae374">ТОП ОНЛАЙН</h4>
+        
+        <div id="leaderboard" style="margin-top:20px; background:rgba(255,255,255,0.05); padding:10px; border-radius:8px;">
+            <h4 style="text-align:center; color:#3ae374; margin:0 0 10px 0;">ТОП МИРА</h4>
             <div id="leaderboard-content"></div>
         </div>
-        <button class="mode-btn" style="margin-top:20px; opacity:0.5" onclick="resetAccount()">Сменить ник</button>
     </div>
 
-    <div id="pauseOverlay">
-        <h1 style="color:#00d2ff">NEO SNAKE</h1>
-        <button class="mode-btn" style="width:180px; font-size:18px" onclick="togglePause()">ИГРАТЬ</button>
+    <div id="gameOverlay">
+        <div id="startScreen">
+            <h1 style="color:#00d2ff">NEO SNAKE</h1>
+            <button class="mode-btn" style="width:200px; font-size:20px" onclick="startCountdown()">ИГРАТЬ</button>
+        </div>
+        <div id="countdownText">3</div>
+        <div id="deathText">
+            <h1>ТЫ ПОГИБ!</h1>
+            <p id="finalScore" style="font-size:20px"></p>
+            <button class="mode-btn" style="width:200px; font-size:20px" onclick="startCountdown()">РЕСТАРТ</button>
+        </div>
     </div>
 
-    <div class="stats">СЧЕТ: <span id="score">0</span></div>
+    <div class="stats">SCORE: <span id="score">0</span></div>
     <canvas id="gameCanvas"></canvas>
 
     <div class="controls">
-        <div class="btn" style="grid-column:2" ontouchstart="handleInput('w')" onmousedown="handleInput('w')">▲</div>
-        <div class="btn" style="grid-column:1; grid-row:2" ontouchstart="handleInput('a')" onmousedown="handleInput('a')">◀</div>
-        <div class="btn" style="grid-column:2; grid-row:2" ontouchstart="handleInput('s')" onmousedown="handleInput('s')">▼</div>
-        <div class="btn" style="grid-column:3; grid-row:2" ontouchstart="handleInput('d')" onmousedown="handleInput('d')">▶</div>
+        <div class="btn" style="grid-column:2" ontouchstart="handleInput('w')">▲</div>
+        <div class="btn" style="grid-column:1; grid-row:2" ontouchstart="handleInput('a')">◀</div>
+        <div class="btn" style="grid-column:2; grid-row:2" ontouchstart="handleInput('s')">▼</div>
+        <div class="btn" style="grid-column:3; grid-row:2" ontouchstart="handleInput('d')">▶</div>
     </div>
 
     <script>
-        // === FIREBASE CONFIG ===
+        // === ВСТАВЬ СВОЙ FIREBASE CONFIG ===
         const firebaseConfig = {
 
   apiKey: "AIzaSyAjy0k14PEvg1pxtAvhCVCDoUINXvyNaC0",
@@ -106,90 +107,85 @@
   measurementId: "G-XLX20K1NQC"
 
 };
-        // =======================
-
+        // ===================================
         firebase.initializeApp(firebaseConfig);
         const db = firebase.database();
         let playerName = localStorage.getItem("snakeUser");
-        
-        // --- ПЕРЕМЕННЫЕ ИГРЫ ---
-        let tileCount = 20;
-        let moveSpeed = 0.12;
-        let currentSkin = localStorage.getItem("snakeSkin") || 'neon';
-        
-        const skins = {
-            neon: { head: "#00d2ff", body: "rgba(58, 227, 116, ", food: "#ff4757" },
-            gold: { head: "#ffcc00", body: "rgba(255, 100, 0, ", food: "#ffffff" },
-            emerald: { head: "#2ecc71", body: "rgba(39, 174, 96, ", food: "#f1c40f" },
-            pink: { head: "#ef57ff", body: "rgba(110, 20, 255, ", food: "#00ffcc" }
-        };
 
-        function setSkin(type) {
-            currentSkin = type;
-            localStorage.setItem("snakeSkin", type);
-            document.querySelectorAll('[id^="skin_"]').forEach(b => b.classList.remove('active'));
-            document.getElementById('skin_'+type).classList.add('active');
-        }
+        let tileCount = 20, moveSpeed = 0.12, currentSkin = 'neon';
+        const skins = { neon: {head:"#00d2ff", body:"rgba(58,227,116,", food:"#ff4757"}, gold: {head:"#ffcc00", body:"rgba(255,100,0,", food:"#fff"}};
 
-        function setSpeed(val, id) {
-            moveSpeed = val;
-            document.querySelectorAll('[id^="spd_"]').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-        }
-
-        function setMapSize(val, id) {
-            tileCount = val;
-            document.querySelectorAll('[id^="size_"]').forEach(b => b.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            initGame();
-        }
-
-        function toggleSidebar() { document.getElementById("sidebar").classList.toggle('open'); }
-
-        // --- ЛОГИКА ---
         const canvas = document.getElementById("gameCanvas");
         const ctx = canvas.getContext("2d");
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playSound(f, d, v) {
-            try {
-                const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
-                o.frequency.setValueAtTime(f, audioCtx.currentTime);
-                g.gain.setValueAtTime(v, audioCtx.currentTime);
-                g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + d);
-                o.connect(g); g.connect(audioCtx.destination); o.start(); o.stop(audioCtx.currentTime + d);
-            } catch(e){}
-        }
-
-        let gridSize, score = 0, snake = [], oldSnake = [], food = {x: 5, y: 5}, dx = 0, dy = -1, nextDx = 0, nextDy = -1, moveProgress = 0, isPaused = true;
+        let score = 0, snake = [], oldSnake = [], food = {x:5,y:5}, dx=0, dy=-1, nextDx=0, nextDy=-1, moveProgress=0, isPaused=true, isCountingDown=false;
 
         function initGame() {
             let screenMin = Math.min(window.innerWidth * 0.95, window.innerHeight * 0.4);
-            gridSize = Math.floor(screenMin / tileCount);
+            let gridSize = Math.floor(screenMin / tileCount);
             canvas.width = tileCount * gridSize; canvas.height = tileCount * gridSize;
             const mid = Math.floor(tileCount / 2);
-            snake = [{x: mid, y: mid}, {x: mid, y: mid+1}, {x: mid, y: mid+2}];
+            snake = [{x:mid, y:mid}, {x:mid, y:mid+1}, {x:mid, y:mid+2}];
             oldSnake = JSON.parse(JSON.stringify(snake));
-            dx = 0; dy = -1; nextDx = 0; nextDy = -1;
-            score = 0; document.getElementById("score").innerText = "0";
+            dx=0; dy=-1; nextDx=0; nextDy=-1; score=0; 
+            document.getElementById("score").innerText = "0";
             createFood();
         }
 
         function handleInput(k) {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (isPaused) return;
-            if (k === 'a' && dx !== 1) { nextDx = -1; nextDy = 0; playSound(200, 0.05, 0.05); }
-            if (k === 'w' && dy !== 1) { nextDx = 0; nextDy = -1; playSound(200, 0.05, 0.05); }
-            if (k === 'd' && dx !== -1) { nextDx = 1; nextDy = 0; playSound(200, 0.05, 0.05); }
-            if (k === 's' && dy !== -1) { nextDx = 0; nextDy = 1; playSound(200, 0.05, 0.05); }
+            if (isPaused || isCountingDown) return;
+            if (k === 'a' && dx !== 1) { nextDx = -1; nextDy = 0; }
+            if (k === 'w' && dy !== 1) { nextDx = 0; nextDy = -1; }
+            if (k === 'd' && dx !== -1) { nextDx = 1; nextDy = 0; }
+            if (k === 's' && dy !== -1) { nextDx = 0; nextDy = 1; }
         }
 
-        function togglePause() {
-            if (audioCtx.state === 'suspended') audioCtx.resume();
-            isPaused = !isPaused;
-            document.getElementById("pauseOverlay").style.display = isPaused ? "flex" : "none";
+        function toggleSidebar() {
+            const side = document.getElementById("sidebar");
+            side.classList.toggle('open');
+            if (side.classList.contains('open')) {
+                isPaused = true;
+                showOverlay('startScreen');
+            }
+        }
+
+        function showOverlay(id) {
+            document.getElementById("gameOverlay").style.display = "flex";
+            ['startScreen', 'countdownText', 'deathText'].forEach(el => document.getElementById(el).style.display = "none");
+            document.getElementById(id).style.display = "block";
+        }
+
+        function startCountdown() {
+            isPaused = true;
+            isCountingDown = true;
             document.getElementById("sidebar").classList.remove('open');
-            if (!isPaused) requestAnimationFrame(gameLoop);
+            showOverlay('countdownText');
+            let count = 3;
+            const cd = document.getElementById("countdownText");
+            cd.innerText = count;
+            
+            const timer = setInterval(() => {
+                count--;
+                if (count > 0) {
+                    cd.innerText = count;
+                } else {
+                    clearInterval(timer);
+                    document.getElementById("gameOverlay").style.display = "none";
+                    isPaused = false;
+                    isCountingDown = false;
+                    requestAnimationFrame(gameLoop);
+                }
+            }, 800);
+        }
+
+        function onDeath() {
+            isPaused = true;
+            saveScore(score);
+            document.getElementById("finalScore").innerText = "Твой счет: " + score;
+            showOverlay('deathText');
+            initGame();
         }
 
         function createFood() {
@@ -205,73 +201,46 @@
                 const head = { x: snake[0].x + dx, y: snake[0].y + dy };
                 if (head.x < 0 || head.x >= tileCount || head.y < 0 || head.y >= tileCount ||
                     snake.some((p, i) => i !== 0 && p.x === head.x && p.y === head.y)) {
-                    playSound(100, 0.4, 0.2);
-                    saveScore(score);
-                    alert("ИГРА ОКОНЧЕНА! Счет: " + score);
-                    initGame(); return;
+                    onDeath(); return;
                 }
                 snake.unshift(head);
                 if (head.x === food.x && head.y === food.y) {
                     score += 10; document.getElementById("score").innerText = score;
-                    playSound(600, 0.1, 0.1); createFood();
+                    createFood();
                 } else { snake.pop(); }
             }
         }
 
         function draw() {
+            let gs = canvas.width / tileCount;
             const skin = skins[currentSkin];
-            ctx.fillStyle = "#000"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // Еда
-            ctx.fillStyle = skin.food; ctx.shadowBlur = 15; ctx.shadowColor = skin.food;
-            ctx.beginPath(); ctx.arc(food.x*gridSize+gridSize/2, food.y*gridSize+gridSize/2, gridSize/3, 0, Math.PI*2); ctx.fill();
-            
-            // Змейка
-            snake.forEach((part, i) => {
-                const prev = oldSnake[i] || part;
-                const x = prev.x + (part.x - prev.x) * moveProgress;
-                const y = prev.y + (part.y - prev.y) * moveProgress;
+            ctx.fillStyle = "#000"; ctx.fillRect(0,0,canvas.width,canvas.height);
+            ctx.fillStyle = skin.food; ctx.beginPath(); ctx.arc(food.x*gs+gs/2, food.y*gs+gs/2, gs/3, 0, Math.PI*2); ctx.fill();
+            snake.forEach((p, i) => {
+                const prev = oldSnake[i] || p;
+                const x = prev.x + (p.x - prev.x) * moveProgress;
+                const y = prev.y + (p.y - prev.y) * moveProgress;
                 ctx.fillStyle = i === 0 ? skin.head : skin.body + (1 - i/snake.length) + ")";
-                ctx.shadowBlur = i === 0 ? 15 : 0;
-                ctx.beginPath(); ctx.roundRect(x*gridSize+1, y*gridSize+1, gridSize-2, gridSize-2, 4); ctx.fill();
+                ctx.beginPath(); ctx.roundRect(x*gs+1, y*gs+1, gs-2, gs-2, 4); ctx.fill();
             });
-            ctx.shadowBlur = 0;
         }
 
         function gameLoop() { if (!isPaused) { update(); draw(); requestAnimationFrame(gameLoop); } }
 
-        // --- ОНЛАЙН ЧАСТЬ ---
         function saveScore(s) {
-            if (s <= 0) return;
-            db.ref('leaderboard/' + playerName).once('value').then(snap => {
-                if (!snap.exists() || snap.val().score < s) db.ref('leaderboard/' + playerName).set({name: playerName, score: s});
+            if (s > 0) db.ref('leaderboard/' + playerName).once('value').then(snap => {
+                if (!snap.exists() || snap.val().score < s) db.ref('leaderboard/' + playerName).set({name:playerName, score:s});
             });
         }
 
         db.ref('leaderboard').orderByChild('score').limitToLast(5).on('value', snap => {
-            const data = []; snap.forEach(c => data.push(c.val()));
-            data.sort((a,b) => b.score - a.score);
-            document.getElementById("leaderboard-content").innerHTML = data.map((r, i) => 
-                `<div class="entry"><span>${i+1}. ${r.name}</span><span>${r.score}</span></div>`).join('');
+            const d = []; snap.forEach(c => d.push(c.val()));
+            d.sort((a,b) => b.score - a.score);
+            document.getElementById("leaderboard-content").innerHTML = d.map((r,i) => `<div style="display:flex; justify-content:space-between; font-size:12px; border-bottom:1px solid #222; padding:3px;"><span>${i+1}. ${r.name}</span><span>${r.score}</span></div>`).join('');
         });
 
-        function checkAccount() {
-            if (!playerName) {
-                playerName = prompt("Ник для онлайна:", "Игрок") || "Gamer" + Math.floor(Math.random()*99);
-                localStorage.setItem("snakeUser", playerName);
-            }
-            setSkin(currentSkin);
-            initGame();
-        }
-        
-        function resetAccount() { if(confirm("Сбросить?")) { localStorage.clear(); location.reload(); } }
-
-        window.addEventListener("keydown", e => {
-            const m = {arrowup:'w',arrowdown:'s',arrowleft:'a',arrowright:'d',w:'w',a:'a',s:'s',d:'d'};
-            if(m[e.key.toLowerCase()]) handleInput(m[e.key.toLowerCase()]);
-        });
-
-        checkAccount();
+        if(!playerName) { playerName = prompt("Ник:") || "Gamer"; localStorage.setItem("snakeUser", playerName); }
+        initGame(); draw();
     </script>
 </body>
 </html>
